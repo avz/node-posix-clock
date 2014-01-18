@@ -58,6 +58,8 @@ jumps in the system time (e.g., if the system administrator
 manually changes the clock), but is affected by the incremental adjustments
 performed by adjtime(3) and NTP.
 
+#### Linux-specific
+
  * `PROCESS_CPUTIME_ID` - *since Linux 2.6.12*.
 High-resolution per-process timer from the CPU.
 
@@ -83,6 +85,26 @@ any time that the system is suspended.  This allows applications to get
 a suspend-aware monotonic clock without having to deal with
 the complications of `REALTIME`, which may have discontinuities
 if the time is changed using settimeofday(2).
+
+#### FreeBSD-specific
+
+ * `REALTIME_FAST` - analog of `REALTIME` but do not perform a full time
+counter query, so their accuracy is one timer tick
+ * `REALTIME_PRECISE` - analog of `REALTIME` but get the most exact value
+as possible, at the expense of execution time
+ * `MONOTONIC_FAST` - analog of `MONOTONIC` but do not perform a full time
+counter query, so their accuracy is one timer tick
+ * `MONOTONIC_PRECISE` - analog of `MONOTONIC` but get the most exact value
+as possible, at the expense of execution time
+ * `UPTIME` - which starts at zero when the kernel boots and increments
+monotonically in SI seconds while the machine is running
+ * `UPTIME_FAST` - analog of `UPTIME` but do not perform a full time
+counter query, so their accuracy is one timer tick
+ * `UPTIME_PRECISE` - analog of `UPTIME` but get the most exact value
+as possible, at the expense of execution time
+ * `SECOND` - returns the current second without performing a full
+time counter query, using in-kernel cached value of current second.
+ * `PROF` - for time that increments when the CPU is running in user or kernel mode
 
 ### See Also
 

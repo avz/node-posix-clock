@@ -36,6 +36,9 @@ exports.REALTIME = binding.REALTIME;
  */
 exports.MONOTONIC = binding.MONOTONIC;
 
+
+/* ------------------- Linux-specific -------------------- */
+
 /**
  * @warning since Linux 2.6.32; Linux-specific
  * A faster but less precise version of REALTIME.
@@ -79,3 +82,59 @@ exports.PROCESS_CPUTIME_ID = binding.PROCESS_CPUTIME_ID;
  * Thread-specific CPU-time clock.
  */
 exports.THREAD_CPUTIME_ID = binding.THREAD_CPUTIME_ID;
+
+
+/* ---------------- FreeBSD-specific ----------------- */
+
+/**
+ * analog of `REALTIME` but do not perform a full time
+ * counter query, so their accuracy is one timer tick
+ */
+exports.REALTIME_FAST = binding.REALTIME_FAST;
+
+/**
+ * analog of `REALTIME` but get the most exact value
+ * as possible, at the expense of execution time
+ */
+exports.REALTIME_PRECISE = binding.REALTIME_PRECISE;
+
+/**
+ * analog of `MONOTONIC` but do not perform a full time
+ * counter query, so their accuracy is one timer tick
+ */
+exports.MONOTONIC_FAST = binding.MONOTONIC_FAST;
+
+/**
+ * analog of `MONOTONIC` but get the most exact value
+ * as possible, at the expense of execution time
+ */
+exports.MONOTONIC_PRECISE = binding.MONOTONIC_PRECISE;
+
+/**
+ * starts at zero when the kernel boots and increments monotonically in SI
+ * seconds while the machine is running
+ */
+exports.UPTIME = binding.UPTIME;
+
+/**
+ * analog of `UPTIME` but do not perform a full time
+ * counter query, so their accuracy is one timer tick
+ */
+exports.UPTIME_FAST = binding.UPTIME_FAST;
+
+/**
+ * analog of `UPTIME` but get the most exact value
+ * as possible, at the expense of execution time
+ */
+exports.UPTIME_PRECISE = binding.UPTIME_PRECISE;
+
+/**
+ * returns the current second without performing a full
+ * time counter query, using in-kernel cached value of current second.
+ */
+exports.SECOND = binding.SECOND;
+
+/**
+ * for time that increments when the CPU is running in user or kernel mode
+ */
+exports.PROF = binding.PROF;

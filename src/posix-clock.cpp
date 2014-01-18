@@ -25,7 +25,7 @@ Handle<Value> ClockGetTime(const Arguments& args) {
 	}
 
 	if(!args[0]->IsInt32()) {
-		ThrowException(Exception::Error(String::Concat(String::New("Invalid argument: "), args[0]->ToString())));
+		ThrowException(Exception::Error(String::New("Specified clockId is not supported on this system")));
 		return scope.Close(Undefined());
 	}
 
@@ -33,7 +33,11 @@ Handle<Value> ClockGetTime(const Arguments& args) {
 	struct timespec ts;
 
 	if(clock_gettime(clockId, &ts) != 0) {
-		ThrowException(Exception::Error(String::Concat(String::New(strerror(errno)), args[0]->ToString())));
+		if(errno == EINVAL)
+			ThrowException(Exception::Error(String::New("Specified clockId is not supported on this system")));
+		else
+			ThrowException(Exception::Error(String::Concat(String::New(strerror(errno)), args[0]->ToString())));
+
 		return scope.Close(Undefined());
 	}
 
@@ -53,7 +57,7 @@ Handle<Value> ClockGetRes(const Arguments& args) {
 	}
 
 	if(!args[0]->IsInt32()) {
-		ThrowException(Exception::Error(String::Concat(String::New("Invalid argument: "), args[0]->ToString())));
+		ThrowException(Exception::Error(String::New("Specified clockId is not supported on this system")));
 		return scope.Close(Undefined());
 	}
 
@@ -61,7 +65,11 @@ Handle<Value> ClockGetRes(const Arguments& args) {
 	struct timespec ts;
 
 	if(clock_getres(clockId, &ts) != 0) {
-		ThrowException(Exception::Error(String::Concat(String::New(strerror(errno)), args[0]->ToString())));
+		if(errno == EINVAL)
+			ThrowException(Exception::Error(String::New("Specified clockId is not supported on this system")));
+		else
+			ThrowException(Exception::Error(String::Concat(String::New(strerror(errno)), args[0]->ToString())));
+
 		return scope.Close(Undefined());
 	}
 

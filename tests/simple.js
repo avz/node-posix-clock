@@ -1,11 +1,8 @@
 var clock = require('../');
 
-var requiredClockTypes = [
+var clockTypes = [
 	'REALTIME',
-	'MONOTONIC'
-];
-
-var optionalClockTypes = [
+	'MONOTONIC',
 	'REALTIME_COARSE',
 	'MONOTONIC_COARSE',
 	'MONOTONIC_RAW',
@@ -14,16 +11,11 @@ var optionalClockTypes = [
 	'THREAD_CPUTIME_ID'
 ];
 
+console.log('Available constants:',  clock);
+
 exports.gettime = function(test) {
-	requiredClockTypes.forEach(function(clockId) {
-		var result = clock.gettime(clock[clockId]);
-
-		test.notEqual(result.sec, undefined);
-		test.notEqual(result.nsec, undefined);
-	});
-
-	optionalClockTypes.forEach(function(clockId) {
-		if(!clock[clockId]) {
+	clockTypes.forEach(function(clockId) {
+		if(clock[clockId] === undefined) {
 			// clock is not supported by system
 			return;
 		}
@@ -38,15 +30,8 @@ exports.gettime = function(test) {
 }
 
 exports.getres = function(test) {
-	requiredClockTypes.forEach(function(clockId) {
-		var result = clock.getres(clock[clockId]);
-
-		test.notEqual(result.sec, undefined);
-		test.notEqual(result.nsec, undefined);
-	});
-
-	optionalClockTypes.forEach(function(clockId) {
-		if(!clock[clockId]) {
+	clockTypes.forEach(function(clockId) {
+		if(clock[clockId] === undefined) {
 			// clock is not supported by system
 			return;
 		}

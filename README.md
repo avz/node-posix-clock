@@ -46,7 +46,6 @@ configured by a particular process.
 ### Clocks
 
  * `REALTIME` - system-wide clock that measures real (i.e., wall-clock) time.
-Setting this clock requires appropriate privileges.
 This clock is affected by discontinuous jumps in
 the system time (e.g., if the system administrator
 manually changes the clock), and by the incremental adjustments

@@ -20,7 +20,12 @@ exports.gettime = function(test) {
 			return;
 		}
 
-		var result = clock.gettime(clock[clockId]);
+		try {
+			var result = clock.gettime(clock[clockId]);
+		} catch(e) {
+			// clock is exposed, but not supported
+			return;
+		}
 
 		test.notEqual(result.sec, undefined);
 		test.notEqual(result.nsec, undefined);
@@ -36,7 +41,12 @@ exports.getres = function(test) {
 			return;
 		}
 
-		var result = clock.getres(clock[clockId]);
+		try {
+			var result = clock.getres(clock[clockId]);
+		} catch(e) {
+			// clock is exposed, but not supported
+			return;
+		}
 
 		test.notEqual(result.sec, undefined);
 		test.notEqual(result.nsec, undefined);

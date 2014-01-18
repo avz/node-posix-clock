@@ -25,7 +25,7 @@ Handle<Value> ClockGetTime(const Arguments& args) {
 	}
 
 	if(!args[0]->IsInt32()) {
-		ThrowException(Exception::Error(String::New("Invalid argument")));
+		ThrowException(Exception::Error(String::Concat(String::New("Invalid argument: "), args[0]->ToString())));
 		return scope.Close(Undefined());
 	}
 
@@ -33,7 +33,7 @@ Handle<Value> ClockGetTime(const Arguments& args) {
 	struct timespec ts;
 
 	if(clock_gettime(clockId, &ts) != 0) {
-		ThrowException(Exception::Error(String::New(strerror(errno))));
+		ThrowException(Exception::Error(String::Concat(String::New(strerror(errno)), args[0]->ToString())));
 		return scope.Close(Undefined());
 	}
 

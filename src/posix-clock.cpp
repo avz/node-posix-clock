@@ -72,6 +72,7 @@ Handle<Value> ClockGetRes(const Arguments& args) {
 	return scope.Close(obj);
 }
 
+extern "C"
 void init(Handle<Object> exports) {
 	exports->Set(String::NewSymbol("gettime"), FunctionTemplate::New(ClockGetTime)->GetFunction());
 	exports->Set(String::NewSymbol("getres"), FunctionTemplate::New(ClockGetRes)->GetFunction());

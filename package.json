@@ -1,0 +1,24 @@
+{
+	"name": "posix-clock",
+	"version": "0.0.1",
+	"description": "POSIX clock_gettime(2) and clock_getres(2) for NodeJS",
+	"keywords": ["posix", "clock", "clock_gettime", "clock_getres", "monotonic", "time"],
+	"homepage": "https://github.com/avz/node-posix-clock",
+	"license": "BSD",
+	"author": "Artem Zaytsev <arepo@nologin.ru>",
+	"main": "./main.js",
+	"engines": {
+		"node": ">=0.10"
+	},
+
+	"dependencies": {
+	},
+
+	"devDependencies": {
+		"nodeunit": ">=0.8"
+	},
+
+	"scripts": {
+		"test": "./node_modules/nodeunit/bin/nodeunit tests"
+	}
+}

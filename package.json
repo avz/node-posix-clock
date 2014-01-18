@@ -4,6 +4,10 @@
 	"description": "POSIX clock_gettime(2) and clock_getres(2) for NodeJS",
 	"keywords": ["posix", "clock", "clock_gettime", "clock_getres", "monotonic", "time"],
 	"homepage": "https://github.com/avz/node-posix-clock",
+	"repository": {
+		"type" : "git",
+		"url" : "https://github.com/avz/node-posix-clock.git"
+	},
 	"license": "BSD",
 	"author": "Artem Zaytsev <arepo@nologin.ru>",
 	"main": "./main.js",

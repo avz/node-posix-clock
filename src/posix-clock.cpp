@@ -81,6 +81,7 @@ Handle<Value> ClockGetRes(const Arguments& args) {
 }
 
 Handle<Value> ClockNanosleep(const Arguments& args) {
+#ifdef __linux__
 	HandleScope scope;
 
 	if(args.Length() != 3) {
@@ -146,6 +147,12 @@ Handle<Value> ClockNanosleep(const Arguments& args) {
 	}
 
 	return scope.Close(Undefined());
+#else
+	HandleScope scope;
+
+	ThrowException(Exception::Error(String::New("This function is not supported by OS")));
+	return scope.Close(Undefined());
+#endif
 }
 
 extern "C"
@@ -154,7 +161,9 @@ void init(Handle<Object> exports) {
 	exports->Set(String::NewSymbol("getres"), FunctionTemplate::New(ClockGetRes)->GetFunction());
 	exports->Set(String::NewSymbol("nanosleep"), FunctionTemplate::New(ClockNanosleep)->GetFunction());
 
+#ifdef TIMER_ABSTIME
 	AVZ_DEFINE_CONSTANT(exports, "TIMER_ABSTIME", TIMER_ABSTIME); // for nanosleep
+#endif
 
 	AVZ_DEFINE_CONSTANT(exports, "REALTIME", CLOCK_REALTIME);
 	AVZ_DEFINE_CONSTANT(exports, "MONOTONIC", CLOCK_MONOTONIC);

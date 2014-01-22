@@ -16,6 +16,12 @@ using namespace v8;
 		(target)->Set(String::NewSymbol("sec"), Number::New(sec)); \
 		(target)->Set(String::NewSymbol("nsec"), Integer::NewFromUnsigned(static_cast<uint32_t>(nsec)));
 
+#define AVZ_VALIDATE_ARG_CLOCKID(arg) \
+		if(!(arg)->IsInt32()) { \
+			ThrowException(Exception::Error(String::New("Specified clockId is not supported on this system"))); \
+			return scope.Close(Undefined()); \
+		}
+
 Handle<Value> ClockGetTime(const Arguments& args) {
 	HandleScope scope;
 
@@ -24,10 +30,7 @@ Handle<Value> ClockGetTime(const Arguments& args) {
 		return scope.Close(Undefined());
 	}
 
-	if(!args[0]->IsInt32()) {
-		ThrowException(Exception::Error(String::New("Specified clockId is not supported on this system")));
-		return scope.Close(Undefined());
-	}
+	AVZ_VALIDATE_ARG_CLOCKID(args[0]);
 
 	clockid_t clockId = args[0]->Int32Value();
 	struct timespec ts;
@@ -56,10 +59,7 @@ Handle<Value> ClockGetRes(const Arguments& args) {
 		return scope.Close(Undefined());
 	}
 
-	if(!args[0]->IsInt32()) {
-		ThrowException(Exception::Error(String::New("Specified clockId is not supported on this system")));
-		return scope.Close(Undefined());
-	}
+	AVZ_VALIDATE_ARG_CLOCKID(args[0]);
 
 	clockid_t clockId = args[0]->Int32Value();
 	struct timespec ts;
@@ -80,10 +80,81 @@ Handle<Value> ClockGetRes(const Arguments& args) {
 	return scope.Close(obj);
 }
 
+Handle<Value> ClockNanosleep(const Arguments& args) {
+	HandleScope scope;
+
+	if(args.Length() != 3) {
+		ThrowException(Exception::TypeError(String::New("Wrong number of arguments")));
+		return scope.Close(Undefined());
+	}
+
+	AVZ_VALIDATE_ARG_CLOCKID(args[0]);
+
+	clockid_t clockId = args[0]->Int32Value();
+	int flags = args[1]->Int32Value();
+
+	if(!args[2]->IsObject()) {
+		ThrowException(Exception::Error(String::New("Sleep time must be an object, e.g. {sec: 1212, nsec: 4344}")));
+		return scope.Close(Undefined());
+	}
+
+	struct timespec sleepTimeTs;
+	struct timespec remainingTimeTs;
+
+	Local<Object> objSleep = args[2]->ToObject();
+	Local<Value> secValue = objSleep->Get(String::New("sec"));
+	Local<Value> nsecValue = objSleep->Get(String::New("nsec"));
+
+	if(!secValue->IsUndefined() && !secValue->IsUint32()) {
+		ThrowException(Exception::Error(String::New("Option `sec` must be unsigned integer")));
+		return scope.Close(Undefined());
+	}
+
+	if(!nsecValue->IsUndefined() && !nsecValue->IsUint32()) {
+		ThrowException(Exception::Error(String::New("Option `nsec` must be unsigned integer")));
+		return scope.Close(Undefined());
+	}
+
+	sleepTimeTs.tv_sec = (time_t)secValue->Uint32Value();
+	sleepTimeTs.tv_nsec = (long)nsecValue->Uint32Value();
+
+	if(sleepTimeTs.tv_nsec < 0 || sleepTimeTs.tv_nsec >= 1e9) {
+		ThrowException(Exception::Error(String::New("Option `nsec` must be in [0; 999999999]")));
+		return scope.Close(Undefined());
+	}
+
+	int err = clock_nanosleep(clockId, flags, &sleepTimeTs, &remainingTimeTs);
+
+	if(err != 0) {
+		if(err == EINVAL) {
+			ThrowException(Exception::Error(String::New("Specified clockId is not supported on this system or invalid argument")));
+		} else if(err == EINTR) {
+			/* stopped by signal - need to return remaining time */
+			struct timespec *res;
+
+			if(flags & TIMER_ABSTIME)
+				res = &sleepTimeTs;
+			else
+				res = &remainingTimeTs;
+
+			Local<Object> obj = Object::New();
+			AVZ_FILL_TIMESPEC(obj, res->tv_sec, res->tv_nsec);
+			return scope.Close(obj);
+		} else {
+			ThrowException(Exception::Error(String::Concat(String::Concat(String::New(strerror(err)), String::New(": ")), args[0]->ToString())));
+		}
+	}
+
+	return scope.Close(Undefined());
+}
+
 extern "C"
 void init(Handle<Object> exports) {
 	exports->Set(String::NewSymbol("gettime"), FunctionTemplate::New(ClockGetTime)->GetFunction());
 	exports->Set(String::NewSymbol("getres"), FunctionTemplate::New(ClockGetRes)->GetFunction());
+	exports->Set(String::NewSymbol("nanosleep"), FunctionTemplate::New(ClockNanosleep)->GetFunction());
+
+	AVZ_DEFINE_CONSTANT(exports, "TIMER_ABSTIME", TIMER_ABSTIME); // for nanosleep
 
 	AVZ_DEFINE_CONSTANT(exports, "REALTIME", CLOCK_REALTIME);
 	AVZ_DEFINE_CONSTANT(exports, "MONOTONIC", CLOCK_MONOTONIC);

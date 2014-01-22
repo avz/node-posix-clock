@@ -17,6 +17,8 @@ exports.gettime = binding.gettime;
  */
 exports.getres = binding.getres;
 
+exports.nanosleep = binding.nanosleep;
+
 /**
  * System-wide clock that measures real (i.e., wall-clock) time.
  * Setting this clock requires appropriate privileges.
@@ -138,3 +140,5 @@ exports.SECOND = binding.SECOND;
  * for time that increments when the CPU is running in user or kernel mode
  */
 exports.PROF = binding.PROF;
+
+exports.TIMER_ABSTIME = binding.TIMER_ABSTIME;

@@ -6,6 +6,7 @@ npm install posix-clock
 ```
 
 ## Examples
+### clock_getres()
 ```javascript
 var clock = require('posix-clock');
 
@@ -16,6 +17,15 @@ console.log(
 		+ clockResolution.nsec + ' nanosec.'
 	, clockResolution
 );
+```
+
+```
+Resolution of CLOCK_MONOTONIC: 0 sec and 1 nanosec. { sec: 0, nsec: 1 }
+```
+
+### clock_gettime()
+```javascript
+var clock = require('posix-clock');
 
 var clockTime = clock.gettime(clock.MONOTONIC);
 console.log(
@@ -24,14 +34,35 @@ console.log(
 		+ clockTime.nsec + ' nanosec.'
 	, clockTime
 );
-
 ```
 
-Result
 ```
-% node test.js
-Resolution of CLOCK_MONOTONIC: 0 sec and 1 nanosec. { sec: 0, nsec: 1 }
 Time from CLOCK_MONOTONIC: 15224 sec and 557776233 nanosec. { sec: 15224, nsec: 557776233 }
+```
+
+### clock_nanosleep()
+```javascript
+var clock = require('posix-clock');
+
+// sleep until 13 Feb 2009 23:31:30 UTC (Unix Timestamp = 1234567890)
+clock.nanosleep(
+	clock.REALTIME,
+	clock.TIMER_ABSTIME,
+	{
+		sec: 1234567890,
+		nsec: 0
+	}
+);
+
+// sleep at least 10 seconds and 123 nanoseconds
+clock.nanosleep(
+	clock.REALTIME,
+	0,
+	{
+		sec: 10,
+		nsec: 123
+	}
+);
 ```
 
 ## API
@@ -39,9 +70,19 @@ Time from CLOCK_MONOTONIC: 15224 sec and 557776233 nanosec. { sec: 15224, nsec: 
 ### Methods
 
  * `gettime(clockId)` - the function retrieve the time from the specified clock clockId.
+See [man 2 clock_gettime](http://man7.org/linux/man-pages/man2/clock_gettime.2.html) for more details.
  * `getres(clockId)` - the function return the resolution (precision) of the
 specified clock clockId. The resolution of clocks depends on the implementation and cannot be
 configured by a particular process.
+See [man 2 clock_getres](http://man7.org/linux/man-pages/man2/clock_getres.2.html) for more details.
+ * `nanosleep(clockId, flags, sleepTime)` - *not supported on FreeBSD*, high resolution sleep with specifiable clock.
+If the flag `TIMER_ABSTIME` is not set in the `flags` argument, the `nanosleep()`
+function shall cause the current thread to be suspended from execution until
+either the time interval specified by the `sleepTime` argument has elapsed,
+or a signal is delivered to the calling thread and its action is to invoke a
+signal-catching function, or the process is terminated.
+The clock used to measure the time shall be the clock specified by clockId.
+See [man 2 clock_nanosleep](http://man7.org/linux/man-pages/man2/clock_nanosleep.2.html) for more details.
 
 ### Clocks
 
@@ -104,7 +145,3 @@ as possible, at the expense of execution time
  * `SECOND` - returns the current second without performing a full
 time counter query, using in-kernel cached value of current second.
  * `PROF` - for time that increments when the CPU is running in user or kernel mode
-
-### See Also
-
-See [man 2 clock_gettime](http://man7.org/linux/man-pages/man2/clock_gettime.2.html) for more details.

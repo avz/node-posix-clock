@@ -17,6 +17,20 @@ exports.gettime = binding.gettime;
  */
 exports.getres = binding.getres;
 
+/**
+ * high resolution sleep with specifiable clock.
+ * If the flag `TIMER_ABSTIME` is not set in the `flags` argument, the `nanosleep()`
+ * function shall cause the current thread to be suspended from execution until
+ * either the time interval specified by the `sleepTime` argument has elapsed,
+ * or a signal is delivered to the calling thread and its action is to invoke a
+ * signal-catching function, or the process is terminated.
+ * The clock used to measure the time shall be the clock specified by clockId.
+ * @warning not supported on FreeBSD
+ * @param {Integer} clockId
+ * @param {Integer} flags
+ * @param {Object} sleepTime {sec: 1, nsec: 1223}
+ * @returns {undefined}
+ */
 exports.nanosleep = binding.nanosleep;
 
 /**

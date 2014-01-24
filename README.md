@@ -75,7 +75,7 @@ See [man 2 clock_gettime](http://man7.org/linux/man-pages/man2/clock_gettime.2.h
 specified clock clockId. The resolution of clocks depends on the implementation and cannot be
 configured by a particular process.
 See [man 2 clock_getres](http://man7.org/linux/man-pages/man2/clock_getres.2.html) for more details.
- * `nanosleep(clockId, flags, sleepTime)` - *not supported on FreeBSD*, high resolution sleep with specifiable clock.
+ * `nanosleep(clockId, flags, sleepTime)` - high resolution sleep with specifiable clock.
 If the flag `TIMER_ABSTIME` is not set in the `flags` argument, the `nanosleep()`
 function shall cause the current thread to be suspended from execution until
 either the time interval specified by the `sleepTime` argument has elapsed,
@@ -83,6 +83,7 @@ or a signal is delivered to the calling thread and its action is to invoke a
 signal-catching function, or the process is terminated.
 The clock used to measure the time shall be the clock specified by clockId.
 See [man 2 clock_nanosleep](http://man7.org/linux/man-pages/man2/clock_nanosleep.2.html) for more details.
+**On non-linux OS only `nanosleep(REALTIME, 0, {...})` is supported**.
 
 ### Clocks
 

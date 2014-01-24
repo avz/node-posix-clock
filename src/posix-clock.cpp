@@ -81,7 +81,6 @@ Handle<Value> ClockGetRes(const Arguments& args) {
 }
 
 Handle<Value> ClockNanosleep(const Arguments& args) {
-#ifdef __linux__
 	HandleScope scope;
 
 	if(args.Length() != 3) {
@@ -124,6 +123,7 @@ Handle<Value> ClockNanosleep(const Arguments& args) {
 		return scope.Close(Undefined());
 	}
 
+#ifdef __linux__
 	int err = clock_nanosleep(clockId, flags, &sleepTimeTs, &remainingTimeTs);
 
 	if(err != 0) {
@@ -145,14 +145,32 @@ Handle<Value> ClockNanosleep(const Arguments& args) {
 			ThrowException(Exception::Error(String::Concat(String::Concat(String::New(strerror(err)), String::New(": ")), args[0]->ToString())));
 		}
 	}
-
-	return scope.Close(Undefined());
 #else
-	HandleScope scope;
+	if(clockId != CLOCK_REALTIME) {
+		ThrowException(Exception::Error(String::New("Only nanosleep(REALTIME) clock is supported by your OS")));
+		return scope.Close(Undefined());
+	}
 
-	ThrowException(Exception::Error(String::New("This function is not supported by OS")));
-	return scope.Close(Undefined());
+	if(flags & TIMER_ABSTIME) {
+		ThrowException(Exception::Error(String::New("Flag nanosleep(TIMER_ABSTIME) is not supported by your OS")));
+		return scope.Close(Undefined());
+	}
+
+	int err = nanosleep(&sleepTimeTs, &remainingTimeTs);
+
+	if(err == -1) {
+		if(errno == EINTR) {
+			Local<Object> obj = Object::New();
+			AVZ_FILL_TIMESPEC(obj, remainingTimeTs.tv_sec, remainingTimeTs.tv_nsec);
+			return scope.Close(obj);
+		} else {
+			ThrowException(Exception::Error(String::Concat(String::Concat(String::New(strerror(err)), String::New(": ")), args[0]->ToString())));
+			return scope.Close(Undefined());
+		}
+	}
 #endif
+
+	return scope.Close(Undefined());
 }
 
 extern "C"

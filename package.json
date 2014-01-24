@@ -1,6 +1,6 @@
 {
 	"name": "posix-clock",
-	"version": "0.2.1",
+	"version": "0.2.2",
 	"description": "POSIX clock_gettime(), clock_getres() and clock_nanosleep() for NodeJS",
 	"keywords": ["posix", "clock", "clock_gettime", "clock_getres", "clock_nanosleep", "monotonic", "time", "nanosleep"],
 	"homepage": "https://github.com/avz/node-posix-clock",

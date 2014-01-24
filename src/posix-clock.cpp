@@ -14,11 +14,13 @@ using namespace v8;
 
 #define AVZ_FILL_TIMESPEC(target, sec, nsec) \
 		(target)->Set(String::NewSymbol("sec"), Number::New(sec)); \
-		(target)->Set(String::NewSymbol("nsec"), Integer::NewFromUnsigned(static_cast<uint32_t>(nsec)));
+		(target)->Set(String::NewSymbol("nsec"), \
+			Integer::NewFromUnsigned(static_cast<uint32_t>(nsec)));
 
 #define AVZ_VALIDATE_ARG_CLOCKID(arg) \
 		if(!(arg)->IsInt32()) { \
-			ThrowException(Exception::Error(String::New("Specified clockId is not supported on this system"))); \
+			ThrowException(Exception::Error( \
+				String::New("Specified clockId is not supported on this system"))); \
 			return scope.Close(Undefined()); \
 		}
 
@@ -36,10 +38,15 @@ Handle<Value> ClockGetTime(const Arguments& args) {
 	struct timespec ts;
 
 	if(clock_gettime(clockId, &ts) != 0) {
-		if(errno == EINVAL)
-			ThrowException(Exception::Error(String::New("Specified clockId is not supported on this system")));
-		else
-			ThrowException(Exception::Error(String::Concat(String::New(strerror(errno)), args[0]->ToString())));
+		if(errno == EINVAL) {
+			ThrowException(Exception::Error(String::New(
+				"Specified clockId is not supported on this system"
+			)));
+		} else {
+			ThrowException(Exception::Error(
+				String::Concat(String::New(strerror(errno)), args[0]->ToString())
+			));
+		}
 
 		return scope.Close(Undefined());
 	}
@@ -65,10 +72,15 @@ Handle<Value> ClockGetRes(const Arguments& args) {
 	struct timespec ts;
 
 	if(clock_getres(clockId, &ts) != 0) {
-		if(errno == EINVAL)
-			ThrowException(Exception::Error(String::New("Specified clockId is not supported on this system")));
-		else
-			ThrowException(Exception::Error(String::Concat(String::New(strerror(errno)), args[0]->ToString())));
+		if(errno == EINVAL) {
+			ThrowException(Exception::Error(String::New(
+				"Specified clockId is not supported on this system"
+			)));
+		} else {
+			ThrowException(Exception::Error(
+				String::Concat(String::New(strerror(errno)), args[0]->ToString())
+			));
+		}
 
 		return scope.Close(Undefined());
 	}
@@ -94,7 +106,10 @@ Handle<Value> ClockNanosleep(const Arguments& args) {
 	int flags = args[1]->Int32Value();
 
 	if(!args[2]->IsObject()) {
-		ThrowException(Exception::Error(String::New("Sleep time must be an object, e.g. {sec: 1212, nsec: 4344}")));
+		ThrowException(Exception::Error(String::New(
+			"Sleep time must be an object, e.g. {sec: 1212, nsec: 4344}"
+		)));
+
 		return scope.Close(Undefined());
 	}
 
@@ -106,12 +121,18 @@ Handle<Value> ClockNanosleep(const Arguments& args) {
 	Local<Value> nsecValue = objSleep->Get(String::New("nsec"));
 
 	if(!secValue->IsUndefined() && !secValue->IsUint32()) {
-		ThrowException(Exception::Error(String::New("Option `sec` must be unsigned integer")));
+		ThrowException(Exception::Error(String::New(
+			"Option `sec` must be unsigned integer"
+		)));
+
 		return scope.Close(Undefined());
 	}
 
 	if(!nsecValue->IsUndefined() && !nsecValue->IsUint32()) {
-		ThrowException(Exception::Error(String::New("Option `nsec` must be unsigned integer")));
+		ThrowException(Exception::Error(String::New(
+			"Option `nsec` must be unsigned integer"
+		)));
+
 		return scope.Close(Undefined());
 	}
 
@@ -119,7 +140,10 @@ Handle<Value> ClockNanosleep(const Arguments& args) {
 	sleepTimeTs.tv_nsec = (long)nsecValue->Uint32Value();
 
 	if(sleepTimeTs.tv_nsec < 0 || sleepTimeTs.tv_nsec >= 1e9) {
-		ThrowException(Exception::Error(String::New("Option `nsec` must be in [0; 999999999]")));
+		ThrowException(Exception::Error(String::New(
+			"Option `nsec` must be in [0; 999999999]"
+		)));
+
 		return scope.Close(Undefined());
 	}
 
@@ -128,7 +152,9 @@ Handle<Value> ClockNanosleep(const Arguments& args) {
 
 	if(err != 0) {
 		if(err == EINVAL) {
-			ThrowException(Exception::Error(String::New("Specified clockId is not supported on this system or invalid argument")));
+			ThrowException(Exception::Error(String::New(
+				"Specified clockId is not supported on this system or invalid argument"
+			)));
 		} else if(err == EINTR) {
 			/* stopped by signal - need to return remaining time */
 			struct timespec *res;
@@ -142,17 +168,29 @@ Handle<Value> ClockNanosleep(const Arguments& args) {
 			AVZ_FILL_TIMESPEC(obj, res->tv_sec, res->tv_nsec);
 			return scope.Close(obj);
 		} else {
-			ThrowException(Exception::Error(String::Concat(String::Concat(String::New(strerror(err)), String::New(": ")), args[0]->ToString())));
+			ThrowException(Exception::Error(
+				String::Concat(String::Concat(
+					String::New(strerror(err)),
+					String::New(": ")),
+					args[0]->ToString()
+				)
+			));
 		}
 	}
 #else
 	if(clockId != CLOCK_REALTIME) {
-		ThrowException(Exception::Error(String::New("Only nanosleep(REALTIME) clock is supported by your OS")));
+		ThrowException(Exception::Error(String::New(
+			"Only nanosleep(REALTIME) clock is supported by your OS"
+		)));
+
 		return scope.Close(Undefined());
 	}
 
 	if(flags & TIMER_ABSTIME) {
-		ThrowException(Exception::Error(String::New("Flag nanosleep(TIMER_ABSTIME) is not supported by your OS")));
+		ThrowException(Exception::Error(String::New(
+			"Flag nanosleep(TIMER_ABSTIME) is not supported by your OS"
+		)));
+
 		return scope.Close(Undefined());
 	}
 
@@ -164,7 +202,14 @@ Handle<Value> ClockNanosleep(const Arguments& args) {
 			AVZ_FILL_TIMESPEC(obj, remainingTimeTs.tv_sec, remainingTimeTs.tv_nsec);
 			return scope.Close(obj);
 		} else {
-			ThrowException(Exception::Error(String::Concat(String::Concat(String::New(strerror(err)), String::New(": ")), args[0]->ToString())));
+			ThrowException(Exception::Error(
+				String::Concat(String::Concat(
+					String::New(strerror(err)),
+					String::New(": ")),
+					args[0]->ToString()
+				)
+			));
+
 			return scope.Close(Undefined());
 		}
 	}

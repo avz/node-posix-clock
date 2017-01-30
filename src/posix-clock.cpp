@@ -4,147 +4,129 @@
 #include <errno.h>
 #include <string.h>
 #include <sys/types.h>
+#include <nan.h>
 
 using namespace v8;
 
 #define AVZ_DEFINE_CONSTANT(target, name, value) \
-		(target)->Set(v8::String::NewSymbol(name), \
-		v8::Integer::New(value), \
-		static_cast<v8::PropertyAttribute>(v8::ReadOnly|v8::DontDelete))
+		(target)->Set(Nan::New(name).ToLocalChecked(), Nan::New(value))
 
 #define AVZ_FILL_TIMESPEC(target, sec, nsec) \
-		(target)->Set(String::NewSymbol("sec"), Number::New(sec)); \
-		(target)->Set(String::NewSymbol("nsec"), \
-			Integer::NewFromUnsigned(static_cast<uint32_t>(nsec)));
+		(target)->Set(Nan::New("sec").ToLocalChecked(), Nan::New<Number>(sec)); \
+		(target)->Set(Nan::New("nsec").ToLocalChecked(), Nan::New<Number>(nsec));
 
 #define AVZ_VALIDATE_ARG_CLOCKID(arg) \
 		if(!(arg)->IsInt32()) { \
-			ThrowException(Exception::Error( \
-				String::New("Specified clockId is not supported on this system"))); \
-			return scope.Close(Undefined()); \
+			Nan::ThrowTypeError("Specified clockId is not supported on this system"); \
+			return; \
 		}
 
-Handle<Value> ClockGetTime(const Arguments& args) {
-	HandleScope scope;
-
-	if(args.Length() != 1) {
-		ThrowException(Exception::TypeError(String::New("Wrong number of arguments")));
-		return scope.Close(Undefined());
+NAN_METHOD(ClockGetTime) {
+	if(info.Length() != 1) {
+		Nan::ThrowTypeError("Wrong number of arguments");
+		return;
 	}
 
-	AVZ_VALIDATE_ARG_CLOCKID(args[0]);
+	AVZ_VALIDATE_ARG_CLOCKID(info[0]);
 
-	clockid_t clockId = args[0]->Int32Value();
+	clockid_t clockId = (clockid_t)info[0]->Int32Value();
 	struct timespec ts;
 
 	if(clock_gettime(clockId, &ts) != 0) {
 		if(errno == EINVAL) {
-			ThrowException(Exception::Error(String::New(
-				"Specified clockId is not supported on this system"
-			)));
+			Nan::ThrowTypeError("Specified clockId is not supported on this system");
 		} else {
-			ThrowException(Exception::Error(
-				String::Concat(String::New(strerror(errno)), args[0]->ToString())
-			));
+			Nan::ThrowError(Nan::ErrnoException(errno, "clock_gettime", ""));
 		}
 
-		return scope.Close(Undefined());
+		return;
 	}
 
-	Local<Object> obj = Object::New();
+	Local<Object> obj = Nan::New<Object>();
 
 	AVZ_FILL_TIMESPEC(obj, ts.tv_sec, ts.tv_nsec);
 
-	return scope.Close(obj);
+	info.GetReturnValue().Set(obj);
 }
 
-Handle<Value> ClockGetRes(const Arguments& args) {
-	HandleScope scope;
-
-	if(args.Length() != 1) {
-		ThrowException(Exception::TypeError(String::New("Wrong number of arguments")));
-		return scope.Close(Undefined());
+NAN_METHOD(ClockGetRes) {
+	if(info.Length() != 1) {
+		Nan::ThrowTypeError("Wrong number of arguments");
+		return;
 	}
 
-	AVZ_VALIDATE_ARG_CLOCKID(args[0]);
+	AVZ_VALIDATE_ARG_CLOCKID(info[0]);
 
-	clockid_t clockId = args[0]->Int32Value();
+	clockid_t clockId = (clockid_t)info[0]->Int32Value();
 	struct timespec ts;
 
 	if(clock_getres(clockId, &ts) != 0) {
 		if(errno == EINVAL) {
-			ThrowException(Exception::Error(String::New(
-				"Specified clockId is not supported on this system"
-			)));
+			Nan::ThrowTypeError("Specified clockId is not supported on this system");
 		} else {
-			ThrowException(Exception::Error(
-				String::Concat(String::New(strerror(errno)), args[0]->ToString())
-			));
+			Nan::ThrowError(Nan::ErrnoException(errno, "clock_getres", ""));
 		}
 
-		return scope.Close(Undefined());
+		return;
 	}
 
-	Local<Object> obj = Object::New();
+	Local<Object> obj = Nan::New<Object>();
 
 	AVZ_FILL_TIMESPEC(obj, ts.tv_sec, ts.tv_nsec);
 
-	return scope.Close(obj);
+	info.GetReturnValue().Set(obj);
 }
 
-Handle<Value> ClockNanosleep(const Arguments& args) {
-	HandleScope scope;
+NAN_METHOD(ClockNanosleep) {
+	if(info.Length() != 3) {
+		Nan::ThrowTypeError("Wrong number of arguments");
 
-	if(args.Length() != 3) {
-		ThrowException(Exception::TypeError(String::New("Wrong number of arguments")));
-		return scope.Close(Undefined());
+		return;
 	}
 
-	AVZ_VALIDATE_ARG_CLOCKID(args[0]);
+	AVZ_VALIDATE_ARG_CLOCKID(info[0]);
 
-	clockid_t clockId = args[0]->Int32Value();
-	int flags = args[1]->Int32Value();
+	clockid_t clockId = (clockid_t)info[0]->Int32Value();
 
-	if(!args[2]->IsObject()) {
-		ThrowException(Exception::Error(String::New(
-			"Sleep time must be an object, e.g. {sec: 1212, nsec: 4344}"
-		)));
+	if(!info[1]->IsInt32()) {
+		Nan::ThrowTypeError("Specified flags is not supported on this system");
+		return;
+	}
 
-		return scope.Close(Undefined());
+	int flags = info[1]->Int32Value();
+
+	if(!info[2]->IsObject()) {
+		Nan::ThrowTypeError("Sleep time must be an object, e.g. {sec: 1212, nsec: 4344}");
+
+		return;
 	}
 
 	struct timespec sleepTimeTs;
 	struct timespec remainingTimeTs;
 
-	Local<Object> objSleep = args[2]->ToObject();
-	Local<Value> secValue = objSleep->Get(String::New("sec"));
-	Local<Value> nsecValue = objSleep->Get(String::New("nsec"));
+	Local<Object> objSleep = info[2]->ToObject();
+	Local<Value> secValue = objSleep->Get(Nan::New("sec").ToLocalChecked());
+	Local<Value> nsecValue = objSleep->Get(Nan::New("nsec").ToLocalChecked());
 
 	if(!secValue->IsUndefined() && !secValue->IsUint32()) {
-		ThrowException(Exception::Error(String::New(
-			"Option `sec` must be unsigned integer"
-		)));
+		Nan::ThrowTypeError("Option `sec` must be unsigned integer");
 
-		return scope.Close(Undefined());
+		return;
 	}
 
 	if(!nsecValue->IsUndefined() && !nsecValue->IsUint32()) {
-		ThrowException(Exception::Error(String::New(
-			"Option `nsec` must be unsigned integer"
-		)));
+		Nan::ThrowTypeError("Option `nsec` must be unsigned integer");
 
-		return scope.Close(Undefined());
+		return;
 	}
 
 	sleepTimeTs.tv_sec = (time_t)secValue->Uint32Value();
 	sleepTimeTs.tv_nsec = (long)nsecValue->Uint32Value();
 
 	if(sleepTimeTs.tv_nsec < 0 || sleepTimeTs.tv_nsec >= 1e9) {
-		ThrowException(Exception::Error(String::New(
-			"Option `nsec` must be in [0; 999999999]"
-		)));
+		Nan::ThrowTypeError("Option `nsec` must be in [0; 999999999]");
 
-		return scope.Close(Undefined());
+		return;
 	}
 
 #ifdef __linux__
@@ -152,77 +134,65 @@ Handle<Value> ClockNanosleep(const Arguments& args) {
 
 	if(err != 0) {
 		if(err == EINVAL) {
-			ThrowException(Exception::Error(String::New(
-				"Specified clockId is not supported on this system or invalid argument"
-			)));
+			Nan::ThrowTypeError("Specified clockId is not supported on this system or invalid argument");
 		} else if(err == EINTR) {
 			/* stopped by signal - need to return remaining time */
 			struct timespec *res;
 
-			if(flags & TIMER_ABSTIME)
+			if(flags & TIMER_ABSTIME) {
 				res = &sleepTimeTs;
-			else
+			} else {
 				res = &remainingTimeTs;
+			}
 
-			Local<Object> obj = Object::New();
+			Local<Object> obj = Nan::New<Object>();
+
 			AVZ_FILL_TIMESPEC(obj, res->tv_sec, res->tv_nsec);
-			return scope.Close(obj);
+
+			info.GetReturnValue().Set(obj);
 		} else {
-			ThrowException(Exception::Error(
-				String::Concat(String::Concat(
-					String::New(strerror(err)),
-					String::New(": ")),
-					args[0]->ToString()
-				)
-			));
+			Nan::ThrowError(Nan::ErrnoException(errno, "clock_nanosleep", ""));
+
+			return;
 		}
 	}
 #else
 	if(clockId != CLOCK_REALTIME) {
-		ThrowException(Exception::Error(String::New(
-			"Only nanosleep(REALTIME) clock is supported by your OS"
-		)));
+		Nan::ThrowTypeError("Only nanosleep(REALTIME) clock is supported by your OS");
 
-		return scope.Close(Undefined());
+		return;
 	}
 
-	if(flags & TIMER_ABSTIME) {
-		ThrowException(Exception::Error(String::New(
-			"Flag nanosleep(TIMER_ABSTIME) is not supported by your OS"
-		)));
-
-		return scope.Close(Undefined());
+	if(flags) {
+		Nan::ThrowTypeError("Specified flags is not supported on this system");
+		return;
 	}
 
 	int err = nanosleep(&sleepTimeTs, &remainingTimeTs);
 
 	if(err == -1) {
 		if(errno == EINTR) {
-			Local<Object> obj = Object::New();
-			AVZ_FILL_TIMESPEC(obj, remainingTimeTs.tv_sec, remainingTimeTs.tv_nsec);
-			return scope.Close(obj);
-		} else {
-			ThrowException(Exception::Error(
-				String::Concat(String::Concat(
-					String::New(strerror(err)),
-					String::New(": ")),
-					args[0]->ToString()
-				)
-			));
+			Local<Object> obj = Nan::New<Object>();
 
-			return scope.Close(Undefined());
+			AVZ_FILL_TIMESPEC(obj, remainingTimeTs.tv_sec, remainingTimeTs.tv_nsec);
+
+			info.GetReturnValue().Set(obj);
+		} else {
+			Nan::ThrowError(Nan::ErrnoException(errno, "nanosleep", ""));
+
+			return;
 		}
 	}
 #endif
 
-	return scope.Close(Undefined());
+	return;
 }
 
 extern "C"
 void init(Handle<Object> exports) {
-	exports->Set(String::NewSymbol("gettime"), FunctionTemplate::New(ClockGetTime)->GetFunction());
-	exports->Set(String::NewSymbol("getres"), FunctionTemplate::New(ClockGetRes)->GetFunction());
-	exports->Set(String::NewSymbol("nanosleep"), FunctionTemplate::New(ClockNanosleep)->GetFunction());
+	Nan::SetMethod(exports, "gettime", ClockGetTime);
+	Nan::SetMethod(exports, "getres", ClockGetRes);
+	Nan::SetMethod(exports, "nanosleep", ClockNanosleep);
 
 #ifdef TIMER_ABSTIME
 	AVZ_DEFINE_CONSTANT(exports, "TIMER_ABSTIME", TIMER_ABSTIME); // for nanosleep

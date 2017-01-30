@@ -1,6 +1,6 @@
 {
   "name": "posix-clock",
-  "version": "0.2.2",
+  "version": "1.0.0",
   "description": "POSIX clock_gettime(), clock_getres() and clock_nanosleep() for NodeJS",
   "keywords": [
     "posix",

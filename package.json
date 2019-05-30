@@ -1,6 +1,6 @@
 {
   "name": "posix-clock",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "POSIX clock_gettime(), clock_getres() and clock_nanosleep() for NodeJS",
   "keywords": [
     "posix",
@@ -21,7 +21,7 @@
   "author": "Artem Zaytsev <arepo@nologin.ru>",
   "main": "./main.js",
   "engines": {
-    "node": ">=0.10"
+    "node": ">=8.12"
   },
   "os": [
     "linux",
@@ -29,7 +29,7 @@
     "darwin"
   ],
   "dependencies": {
-    "nan": "^2.5.1"
+    "node-addon-api": "^1.6.3"
   },
   "devDependencies": {
     "nodeunit": ">=0.8"

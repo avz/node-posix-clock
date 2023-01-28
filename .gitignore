@@ -3,3 +3,4 @@ build
 nbproject
 test.js
 .idea
+package-lock.json

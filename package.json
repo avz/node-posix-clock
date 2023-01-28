@@ -1,40 +1,40 @@
 {
-  "name": "posix-clock",
-  "version": "2.0.0",
-  "description": "POSIX clock_gettime(), clock_getres() and clock_nanosleep() for NodeJS",
-  "keywords": [
-    "posix",
-    "clock",
-    "clock_gettime",
-    "clock_getres",
-    "clock_nanosleep",
-    "monotonic",
-    "time",
-    "nanosleep"
-  ],
-  "homepage": "https://github.com/avz/node-posix-clock",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/avz/node-posix-clock.git"
-  },
-  "license": "BSD",
-  "author": "Artem Zaytsev <arepo@nologin.ru>",
-  "main": "./main.js",
-  "engines": {
-    "node": ">=8.12"
-  },
-  "os": [
-    "linux",
-    "freebsd",
-    "darwin"
-  ],
-  "dependencies": {
-    "node-addon-api": "^1.6.3"
-  },
-  "devDependencies": {
-    "nodeunit": "^0.11.3"
-  },
-  "scripts": {
-    "test": "./node_modules/nodeunit/bin/nodeunit tests"
-  }
+	"name": "posix-clock",
+	"version": "3.0.0",
+	"description": "POSIX clock_gettime(), clock_getres() and clock_nanosleep() for NodeJS",
+	"keywords": [
+		"posix",
+		"clock",
+		"clock_gettime",
+		"clock_getres",
+		"clock_nanosleep",
+		"monotonic",
+		"time",
+		"nanosleep"
+	],
+	"homepage": "https://github.com/avz/node-posix-clock",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/avz/node-posix-clock.git"
+	},
+	"license": "BSD",
+	"author": "Artem Zaytsev <arepo@nologin.ru>",
+	"main": "./main.js",
+	"engines": {
+		"node": ">=12"
+	},
+	"os": [
+		"linux",
+		"freebsd",
+		"darwin"
+	],
+	"dependencies": {
+		"node-addon-api": "^4.3.0"
+	},
+	"devDependencies": {
+		"nodeunit": "^0.11.3"
+	},
+	"scripts": {
+		"test": "./node_modules/nodeunit/bin/nodeunit tests"
+	}
 }

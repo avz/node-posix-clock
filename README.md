@@ -5,6 +5,11 @@
 npm install posix-clock
 ```
 
+__WARNING: if you want to use a module with NodeJS before v12, then use module version 2__:
+```
+npm install posix-clock@2
+```
+
 ## Examples
 ### clock_getres()
 ```javascript
